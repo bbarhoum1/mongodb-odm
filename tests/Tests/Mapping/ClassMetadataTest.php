@@ -41,15 +41,16 @@ use Generator;
 use InvalidArgumentException;
 use MongoDB\BSON\Document;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\RequiresPhp;
 use PHPUnit\Framework\Attributes\TestWith;
 use ReflectionClass;
 use ReflectionException;
 use stdClass;
 
+use function array_filter;
 use function array_merge;
+use function array_values;
 use function serialize;
-use function sprintf;
+use function str_contains;
 use function unserialize;
 
 class ClassMetadataTest extends BaseTestCase
@@ -1150,18 +1151,24 @@ class ClassMetadataTest extends BaseTestCase
         self::assertSame(20, $metadata->timeSeriesOptions->bucketRoundingSeconds);
     }
 
-    #[RequiresPhp('>= 8.4')]
-    public function testDeprecatedPropertyModification(): void
+    /**
+     * The mapping drivers write metadata properties directly, so deprecating
+     * these writes requires a replacement API first. Loading the whole test
+     * suite mapping must not report a single property write.
+     */
+    public function testLoadingAllMetadataDoesNotDeprecatePropertyWrites(): void
     {
-        $metadata = $this->dm->getClassMetadata(TimeSeriesTestDocument::class);
-
         $this->captureDeprecationMessages(
-            static fn () => $metadata->db = 'foo',
+            fn () => $this->dm->getMetadataFactory()->getAllMetadata(),
             $errors,
         );
 
-        self::assertCount(1, $errors);
-        self::assertEquals(sprintf('Since doctrine/mongodb-odm 2.17: Writing to property %s::db is deprecated and will be removed in version 3.0.', ClassMetadata::class), $errors[0]);
+        $propertyWrites = array_filter(
+            $errors,
+            static fn (string $error): bool => str_contains($error, 'Writing to property'),
+        );
+
+        self::assertSame([], array_values($propertyWrites));
     }
 }
 
