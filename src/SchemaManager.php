@@ -970,10 +970,10 @@ final class SchemaManager
         }
 
         /* A TTL index reports expireAfterSeconds on both sides, so a changed retention window is
-         * not caught by indexOptionsAreMissing() and has to be compared by value. */
+         * not caught by indexOptionsAreMissing(). Comparing the values covers the option being
+         * added or removed as well. */
         if (
-            isset($mongoIndexOptions['expireAfterSeconds'], $documentIndexOptions['expireAfterSeconds']) &&
-            $mongoIndexOptions['expireAfterSeconds'] !== $documentIndexOptions['expireAfterSeconds']
+            ($mongoIndexOptions['expireAfterSeconds'] ?? null) !== ($documentIndexOptions['expireAfterSeconds'] ?? null)
         ) {
             return false;
         }
