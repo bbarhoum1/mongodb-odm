@@ -1245,6 +1245,21 @@ EOT;
                 'mongoIndex' => ['name' => 'foo_1_bar_1'],
                 'documentIndex' => [],
             ],
+            'indexNameMappedAndSame' => [
+                'expected' => true,
+                'mongoIndex' => ['name' => 'my_index'],
+                'documentIndex' => ['options' => ['name' => 'my_index']],
+            ],
+            'indexNameMappedAndDifferent' => [
+                'expected' => false,
+                'mongoIndex' => ['name' => 'my_index'],
+                'documentIndex' => ['options' => ['name' => 'my_renamed_index']],
+            ],
+            'indexNameMappedAndServerGenerated' => [
+                'expected' => false,
+                'mongoIndex' => ['name' => 'foo_1_bar_-1'],
+                'documentIndex' => ['options' => ['name' => 'my_index']],
+            ],
             // background option
             'backgroundOptionOnlyInMongoIndex' => [
                 'expected' => true,
