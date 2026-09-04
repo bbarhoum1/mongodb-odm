@@ -934,6 +934,7 @@ final class SchemaManager
      *   (b) Sparse or unique options differ
      *   (c) Geospatial options differ (bits, max, min)
      *   (d) The partialFilterExpression differs
+     *   (e) The expireAfterSeconds option differs
      *
      * The background option is only relevant to index creation and is not
      * considered.
@@ -966,6 +967,15 @@ final class SchemaManager
             ) {
                 return false;
             }
+        }
+
+        /* A TTL index reports expireAfterSeconds on both sides, so a changed retention window is
+         * not caught by indexOptionsAreMissing() and has to be compared by value. */
+        if (
+            isset($mongoIndexOptions['expireAfterSeconds'], $documentIndexOptions['expireAfterSeconds']) &&
+            $mongoIndexOptions['expireAfterSeconds'] !== $documentIndexOptions['expireAfterSeconds']
+        ) {
+            return false;
         }
 
         if (empty($mongoIndexOptions['partialFilterExpression']) xor empty($documentIndexOptions['partialFilterExpression'])) {
