@@ -960,6 +960,7 @@ final class SchemaManager
      *   (c) Geospatial options differ (bits, max, min)
      *   (d) The partialFilterExpression differs
      *   (e) The class metadata names the index and the name differs
+     *   (f) The expireAfterSeconds option differs
      *
      * The background option is only relevant to index creation and is not
      * considered. Neither is an index name the class metadata does not set,
@@ -1003,6 +1004,15 @@ final class SchemaManager
             ) {
                 return false;
             }
+        }
+
+        /* A TTL index reports expireAfterSeconds on both sides, so a changed retention window is
+         * not caught by indexOptionsAreMissing(). Comparing the values covers the option being
+         * added or removed as well. */
+        if (
+            ($mongoIndexOptions['expireAfterSeconds'] ?? null) !== ($documentIndexOptions['expireAfterSeconds'] ?? null)
+        ) {
+            return false;
         }
 
         if (empty($mongoIndexOptions['partialFilterExpression']) xor empty($documentIndexOptions['partialFilterExpression'])) {
